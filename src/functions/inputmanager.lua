@@ -1,5 +1,5 @@
 -- INPUT MANAGER / MONITOR
-tro_input_manager = {
+SurplusInputManager = {
   double_click_window = 0.3,
   last_clicked = {
     target = nil,
@@ -14,20 +14,20 @@ tro_input_manager = {
   }
 }
 
-function tro_input_manager:add_listener(event, func)
+function SurplusInputManager:add_listener(event, func)
   if type(event) ~= 'table' then event = { event } end
   for _, e in ipairs(event) do
     table.insert(self.subscribers[e], func)
   end
 end
 
-function tro_input_manager:fire_event(event, payload)
+function SurplusInputManager:fire_event(event, payload)
   for _, func in ipairs(self.subscribers[event]) do
     func(payload)
   end
 end
 
-function tro_input_manager:handle_double_click(target)
+function SurplusInputManager:handle_double_click(target)
   local current_time = love.timer.getTime()
   if self.last_clicked.target == target
       and current_time - self.last_clicked.time <= self.double_click_window then
@@ -40,30 +40,30 @@ function tro_input_manager:handle_double_click(target)
   end
 end
 
-function tro_input_manager:double_click(target)
+function SurplusInputManager:double_click(target)
   self:fire_event('double_click', target)
 end
 
-function tro_input_manager:left_click(target)
+function SurplusInputManager:left_click(target)
   if target then
     self:fire_event('left_click', target)
     self:handle_double_click(target)
   end
 end
 
-function tro_input_manager:right_click(target)
+function SurplusInputManager:right_click(target)
   if target then
     self:fire_event('right_click', target)
   end
 end
 
-function tro_input_manager:right_stick(target)
+function SurplusInputManager:right_stick(target)
   if target then
     self:fire_event('right_stick', target)
   end
 end
 
-function tro_input_manager:controller_x(target)
+function SurplusInputManager:controller_x(target)
   if target then
     self:fire_event('x', target)
   end
@@ -78,7 +78,7 @@ local L_cursor_press_ref = G.CONTROLLER.L_cursor_press
 G.CONTROLLER.L_cursor_press = function(self, x, y)
   if not controller_is_locked() then
     local target = (self.HID.touch and self.cursor_hover.target) or self.hovering.target or self.focused.target
-    tro_input_manager:left_click(target)
+    SurplusInputManager:left_click(target)
   end
   return L_cursor_press_ref(self, x, y)
 end
@@ -87,7 +87,7 @@ local queue_R_cursor_press_ref = G.CONTROLLER.queue_R_cursor_press
 G.CONTROLLER.queue_R_cursor_press = function(self, x, y)
   if not controller_is_locked() then
     local target = self.hovering.target or self.focused.target
-    tro_input_manager:right_click(target)
+    SurplusInputManager:right_click(target)
   end
   return queue_R_cursor_press_ref(self, x, y)
 end
@@ -97,9 +97,9 @@ G.CONTROLLER.capture_focused_input = function(self, button, input_type, dt)
   if input_type == 'press' and self.focused then
     local target = self.focused.target
     if button == 'rightstick' then
-      tro_input_manager:right_stick(target)
+      SurplusInputManager:right_stick(target)
     elseif button == 'x' then
-      tro_input_manager:controller_x(target)
+      SurplusInputManager:controller_x(target)
     end
   end
   return capture_focused_input_ref(self, button, input_type, dt)

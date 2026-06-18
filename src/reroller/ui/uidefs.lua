@@ -1,24 +1,21 @@
 -- UI DEFINITIONS FOR AUTO-REROLLER
-local troC = RerollSurplus.UI.mod_colours
-local Row, Col = RerollSurplus.UI.create_row, RerollSurplus.UI.create_column
-local Text = RerollSurplus.UI.create_text_node
-local TroUIBox = RerollSurplus.UI.create_UIBox_generic_options_custom
+local R = RerollSurplus.UI
 
 function RerollSurplus.UIDEF.auto_reroll_menu_UI()
   local display_menu = UIBox({ definition = RerollSurplus.UIDEF.reroll_targets_list("Current Targets:"), config = {type = "cm"}})
   return
-    Col { align = "cm", padding = 0.15, minw = 5, nodes = {
-      Row { align = "cm", padding = 0.1, r = 0.2, nodes = {
-        Col { align = "cm", padding = 0.15, r = 0.2, minw = 5, colour = troC.inactive, emboss = 0.05, nodes = {
-          Row { align = "cm", padding = 0.1, r = 0.2, nodes = {{ n = G.UIT.O, config = { id = 'surplus_targetsList', object = display_menu } }} },
+    R.Col { padding = 0.15, minw = 5, nodes = {
+      R.Row { padding = 0.1, r = 0.2, nodes = {
+        R.Col { padding = 0.15, r = 0.2, minw = 5, colour = R.C.inactive, emboss = 0.05, nodes = {
+          R.Row { padding = 0.1, r = 0.2, nodes = {{ n = G.UIT.O, config = { id = 'surplus_targetsList', object = display_menu } }} },
           UIBox_button({button = 'surplus_clear_targets', label = {"Clear Targets"}, colour = G.C.FILTER, minw = 3, minh = 0.7, id = 'surplus_clear_targets_button'}),
-          Row { align = "cm", padding = 0.1, r = 0.2, nodes = { Text{text = "Select cards to reroll for\n\tby clicking on them", scale = 0.3} } },
+          R.Row { padding = 0.1, r = 0.2, nodes = { R.Text{text = "Select cards to reroll for\n\tby clicking on them", scale = 0.3} } },
         }},
       }},
-      Row { align = "cm", padding = 0.15, r = 0.2, nodes = {
-        Col { align = "cm", padding = 0.15, r = 0.2, minw = 5, colour = darken(copy_table(G.C.GREY), 0.5), emboss = 0.05, nodes = {
+      R.Row { padding = 0.15, r = 0.2, nodes = {
+        R.Col { padding = 0.15, r = 0.2, minw = 5, colour = darken(copy_table(G.C.GREY), 0.5), emboss = 0.05, nodes = {
           UIBox_button({button = 'surplus_view_options', label = {"Reroll Options"}, colour = G.C.FILTER, minw = 3, minh = 0.7, id = 'surplus_view_options_button'}),
-          Row { nodes = { Text{text = "\t Start auto-reroll with\nShift+Right-Click on reroll button", scale = 0.28} } },
+          R.Row { nodes = { R.Text{text = "\t Start auto-reroll with\nShift+Right-Click on reroll button", scale = 0.28} } },
         }},
       }},
     }}
@@ -26,33 +23,33 @@ end
 
 function RerollSurplus.UIDEF.reroll_targets_list(header)
   local display_list = RerollSurplus.UIDEF.get_display_list()
-  table.insert(display_list.nodes, 1, Row { minh = 0.7, nodes = { Text { text = header, colour = G.C.UI.TEXT_LIGHT, scale = 0.5 } } })
-  return TroUIBox{ minh = 0.0, minw = 0.0, bg_colour = troC.inactive, contents = { Row { r = 0.2, padding = 0.15, nodes = display_list.nodes } } }
+  table.insert(display_list.nodes, 1, R.Row { minh = 0.7, nodes = { R.Text { text = header, colour = G.C.UI.TEXT_LIGHT, scale = 0.5 } } })
+  return R.UIBox{ minh = 0.0, minw = 0.0, bg_colour = R.C.inactive, contents = { R.Row { r = 0.2, padding = 0.15, nodes = display_list.nodes } } }
 end
 
 function RerollSurplus.UIDEF.get_display_list()
-  local display_list = Col { colour = G.C.GREY, nodes = { Row { nodes = { Col { colour = G.C.GREY, padding = 0.05, r = 0.2, nodes = {} } }} }}
-  local default = Row { padding = 0.05, r = 0.2, minw = 3, nodes = { Text { padding = 0.05, text = '', colour = G.C.WHITE, scale = 0.4 } } }
+  local display_list = R.Col { colour = G.C.GREY, nodes = { R.Row { nodes = { R.Col { colour = G.C.GREY, padding = 0.05, r = 0.2, nodes = {} } }} }}
+  local default = R.Row { padding = 0.05, r = 0.2, minw = 3, nodes = { R.Text { padding = 0.05, text = '', colour = G.C.WHITE, scale = 0.4 } } }
   for i = 1, #RerollSurplus.collection_targets do
     local target = G.P_CENTERS[RerollSurplus.collection_targets[i]].name or G.P_CENTERS[RerollSurplus.collection_targets[i]].original_key
     target = string.gsub(target, '^%w', function(l) return l:upper() end)
     target = string.gsub(target, '_%w', function(l) return l:upper() end)
-    table.insert(display_list.nodes[1].nodes[1].nodes, Row { padding = 0.05, r = 0.2, minw = 3,
-      nodes = { Text { padding = 0.05, text = target, colour = G.C.WHITE, scale = 0.4 } } })
+    table.insert(display_list.nodes[1].nodes[1].nodes, R.Row { padding = 0.05, r = 0.2, minw = 3,
+      nodes = { R.Text { padding = 0.05, text = target, colour = G.C.WHITE, scale = 0.4 } } })
   end
   if not next(display_list.nodes[1].nodes[1].nodes) then table.insert(display_list.nodes[1].nodes[1].nodes, default) end
   return display_list
 end
 
 function RerollSurplus.UIDEF.added_key_UI()
-  local target_textnode = Text { ref_table = RerollSurplus.UI.targets, ref_value = 'added_target', scale = 0.3 }
-  local nodes = Row { padding = 0.15, r = 0.2, minh = 0.8, minw = 4, colour = troC.inactive, emboss = 0.05,
+  local target_textnode = R.Text { ref_table = RerollSurplus.UI.targets, ref_value = 'added_target', scale = 0.3 }
+  local nodes = R.Row { padding = 0.15, r = 0.2, minh = 0.8, minw = 4, colour = R.C.inactive, emboss = 0.05,
     nodes = {
-      Text { text = "Search target added: ", align = "cm", colour = G.C.WHITE, shadow = true, scale = 0.3 },
+      R.Text { text = "Search target added: ", colour = G.C.WHITE, shadow = true, scale = 0.3 },
       target_textnode
     }
   }
-  local added_key_UI = Col { align = "cm", minw = 4.5, nodes = {nodes} }
+  local added_key_UI = R.Col { minw = 4.5, nodes = {nodes} }
   return added_key_UI
 end
 
