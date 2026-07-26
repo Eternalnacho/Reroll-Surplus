@@ -26,21 +26,5 @@ local function load_directory(path, load_item, options)
   end
 end
 
-local function load_folders()
-  -- load whatever file we store folder data in
-  local folder_dir = SMODS.NFS.getInfo(RerollSurplus.path_to_folders())
-  if folder_dir.type ~= "directory" then
-    SMODS.NFS.createDirectory(RerollSurplus.path_to_folders())
-  end
-  folder_dir = SMODS.NFS.getDirectoryItems(RerollSurplus.path_to_folders())
 
-  -- iterate over whatever list we load and do the init thing
-  for _, path in pairs(folder_dir) do
-    if SMODS.NFS.newFileData(RerollSurplus.path_to_folders()..'/'..path):getExtension() == 'json' then
-      local folder_table = assert(JSON.decode(SMODS.NFS.read(RerollSurplus.path_to_folders()..'/'..path)))
-      RerollSurplus.Folder(folder_table.name, folder_table.items)
-    end
-  end
-end
-
-return load_directory, load_folders
+return load_directory

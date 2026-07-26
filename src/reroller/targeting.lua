@@ -84,5 +84,5 @@ function Card:click()
 end
 
 -- Reroller controls
-tro_input_manager:add_listener({ 'right_click', 'right_stick' }, RerollSurplus.FUNCS.prompt_target)
-tro_input_manager:add_listener({ 'double_click' }, RerollSurplus.FUNCS.clear_targets)
+SurplusInputManager:add_listener({ 'right_click', 'right_stick' }, RerollSurplus.FUNCS.prompt_target)
+SurplusInputManager:add_listener({ 'double_click' }, RerollSurplus.FUNCS.clear_targets)

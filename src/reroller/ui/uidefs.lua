@@ -75,5 +75,5 @@ function RerollSurplus.UI.config_from_collection()
   return create_UIBox_generic_options({
     colour = G.C.BLACK,
     back_func = 'surplus_exit_coll_config',
-    contents = SMODS.Mods["RerollSurplus"].extra_tabs()[2].tab_definition_function().nodes})
+    contents = SMODS.Mods["RerollSurplus"].config_tab().nodes})
 end
