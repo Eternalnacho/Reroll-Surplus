@@ -1,13 +1,15 @@
 -- BUTTON FUNCTIONS
 
-function G.FUNCS.surplus_your_collection(e)
-  RerollSurplus.collection_from_button = true
-  G.FUNCS.your_collection()
+function G.FUNCS.surplus_open_targeting_window(e)
+  G.SETTINGS.paused = true
+  RerollSurplus.targeting = true
+  G.FUNCS.overlay_menu{ definition = RerollSurplus.UIDEF.get_target_window() }
+  G.OVERLAY_MENU:recalculate()
 end
 
-function G.FUNCS.surplus_exit_coll_config(e)
+function G.FUNCS.surplus_exit_reroll_config(e)
   SMODS.save_mod_config(RerollSurplus)
-  G.FUNCS.your_collection()
+  G.FUNCS.surplus_open_targeting_window()
 end
 
 function G.FUNCS.surplus_exit_search_collection()
@@ -25,8 +27,13 @@ end
 
 function G.FUNCS.surplus_view_options(e)
   G.SETTINGS.paused = true
-  RerollSurplus.config_from_collection = true
-  RerollSurplus.in_collection = false
-  G.FUNCS.overlay_menu{ definition = RerollSurplus.UI.config_from_collection() }
+  G.FUNCS.overlay_menu{ definition = RerollSurplus.UI.reroll_options() }
   G.OVERLAY_MENU:recalculate()
+end
+
+function G.FUNCS.surplus_start_reroll(e)
+  G.FUNCS.exit_overlay_menu()
+  RerollSurplus.defer(function()
+    RerollSurplus.FUNCS.auto_reroll(RerollSurplus.collection_targets)
+  end, { delay = 0.4, blockable = true })
 end

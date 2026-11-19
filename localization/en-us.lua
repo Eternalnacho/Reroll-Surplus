@@ -3,6 +3,8 @@ return {
     Other = {},
   },
   misc = {
-    dictionary = {},
+    dictionary = {
+      b_Surplus_search_placeholder = 'Search for Cards Here'
+    },
   },
 }

@@ -87,7 +87,7 @@ end
 
 function RerollSurplus.UI.update_config()
   if RerollSurplus.collection_from_button then
-    RerollSurplus.UI.rerender(RerollSurplus.UI.config_from_collection, true)
+    RerollSurplus.UI.rerender(RerollSurplus.UI.reroll_options, true)
   else
     G.ACTIVE_MOD_UI = SMODS.Mods["RerollSurplus"]
     RerollSurplus.UI.rerender(create_UIBox_mods, true)

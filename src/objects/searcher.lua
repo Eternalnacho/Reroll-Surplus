@@ -31,7 +31,7 @@ Searcher.filter_query = function(self, list)
   local res = {}
   RerollSurplus.utils.for_each(list, function(item)
     for _, func in pairs(self.SEARCH_FUNCS) do
-      if func(item) then res[#res+1] = item ; return end
+      if func(item) or self.query == '' then res[#res+1] = item ; return end
     end
   end)
   return res
@@ -58,7 +58,7 @@ Searcher.get_text_input = function(self)
     prompt_text = localize('b_Surplus_search_placeholder'),
     current_prompt_text = '',
     extended_corpus = true,
-    w = self.searchWidth,
+    w = self.searchWidth or 2.5,
   }
   local ret = create_text_input(args)
   return ret

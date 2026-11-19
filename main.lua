@@ -13,7 +13,9 @@ local load_dir, load_folders = assert(SMODS.load_file("src/loader.lua"))()
 -- Load directories
 for _, path in ipairs {
   "src/functions",
+  "src/objects",
   "src/reroller",
+  "src/ui",
 } do
   load_dir(path)
 end

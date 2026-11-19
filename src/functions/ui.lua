@@ -79,83 +79,41 @@ function RerollSurplus.UI.create_number_node(args)
 end
 
 
-
-
-
-
-
-
 -- I am VERY BLATANTLY ripping these straight from Cartomancer
 
-function RerollSurplus.UI.create_UIBox_generic_options_custom(args)
-  args = args or {}
+---@param config table
+---@param contents table?
+function RerollSurplus.UI.create_UIBox_generic_options_custom(config, contents)
+  config = config or {}
   local translucent_grey = copy_table(G.C.GREY); translucent_grey[4] = 0.7
   return {
     n = G.UIT.ROOT,
     config = {
-      align = "cm",
-      minw = args.minw or G.ROOM.T.w * 0.6,
-      emboss = args.emboss,
-      padding = args.padding or 0.0,
-      outline = args.outline,
-      outline_colour = args.outline and args.outline_colour,
+      align = config.align or "cm",
+      minw = config.minw or G.ROOM.T.w * 0.6,
+      emboss = config.emboss,
+      padding = config.padding or 0.0,
+      outline = config.outline,
+      outline_colour = config.outline and config.outline_colour,
       r = 0.1,
-      colour = args.bg_colour or translucent_grey
+      colour = config.bg_colour or translucent_grey
     },
-    nodes = { RerollSurplus.UI.create_column({ padding = 0.0, minh = args.minh or 3, nodes = args.contents }) }
+    nodes = { RerollSurplus.UI.create_column({ padding = 0.0, minh = config.minh or 3, nodes = contents or config.contents }) }
   }
 end
 
-function RerollSurplus.UI.create_column_tabs(args)
-  args = args or {}
-  args.colour = args.colour or G.C.CLEAR
-  args.tab_alignment = args.tab_alignment or 'cl'
-  args.opt_callback = args.opt_callback or nil
-  args.scale = args.scale or 1
-  args.tab_w = args.tab_w or 0
-  args.tab_h = args.tab_h or 0
-  args.text_scale = (args.text_scale or 0.5)
-
-  local tab_buttons = {}
-
-  for k, v in ipairs(args.tabs) do
-    if v.chosen then args.current = {k = k, v = v} end
-    local id = 'tab_but_'..(v.label or '')
-    tab_buttons[#tab_buttons+1] = { n = G.UIT.R, config = { align = "tm" }, nodes={
-      UIBox_button({
-        id = id, ref_table = v, button = 'surplus_settings_change_tab', label = {v.label}, colour = darken(RerollSurplus.UI.mod_colours.buttons, 0.2),
-        minh = 0.8 * args.scale, minw = 2.5 * args.scale, col = true, choice = true, scale = args.text_scale,
-        chosen = v.chosen and 'vert', func = v.func, focus_args = { snap_to = args.snap_to_nav, nav = 'wide' },
-      })
-    }}
+-- UIBox refresh function
+---@param id string
+function RerollSurplus.UI.updateObject(id, definition, offset)
+  local object = G.OVERLAY_MENU:get_UIE_by_ID(id)
+  if object and definition then
+    object.config.object:remove()
+    object.config.object = UIBox({
+      definition = definition,
+      config = {type = "cm", parent = object, offset = offset}
+    })
+    object.UIBox:recalculate()
   end
-
-  -- Tabs + Contents
-  return {
-    n = G.UIT.R,
-    config = { padding = 0.0, align = "cl", colour = args.colour },
-    nodes = {
-      -- Tabs
-      RerollSurplus.UI.create_column({ align = "cl", padding = 0.15, colour = G.C.CLEAR, focus_args = { button = 'x', type = 'none' }, nodes = tab_buttons }),
-      -- Tab contents
-      {
-        n = G.UIT.C, config = { align = args.tab_alignment, padding = args.padding or 0.1, no_fill = true, minh = args.tab_h, minw = args.tab_w },
-        nodes = {
-          {
-            n = G.UIT.O,
-            config = {
-              id = 'surplus_settings_tab_contents',
-              old_chosen = tab_buttons[1].nodes[1].nodes[1],
-              object = UIBox{
-                definition = args.current.v.tab_definition_function(args.current.v.tab_definition_function_args),
-                config = { offset = { x = 0, y = 0 } }
-              }
-            }
-          }
-        }
-      },
-    }
-  }
 end
 
 -- Stole this from Handy
@@ -189,14 +147,6 @@ function RerollSurplus.UI.cleanup_dead_elements(ref_table, ref_key)
 	ref_table[ref_key] = new_values
 	return new_values
 end
-
-function RerollSurplus.UI.reset_ui_states()
-  RerollSurplus.in_collection = false
-  RerollSurplus.config_from_collection = nil
-  RerollSurplus.UI.targets.added_target = ''
-  RerollSurplus.UI.get_page_num = true
-end
-
 
 -- Create shorthands for UI Helper Functions
 SMODS.merge_defaults(RerollSurplus.UI, {
