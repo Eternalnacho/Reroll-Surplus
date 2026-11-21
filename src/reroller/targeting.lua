@@ -4,9 +4,10 @@ local util = RerollSurplus.utils
 -- thank you Overstock and god bless you
 local function can_reroll_into(card_key)
   if not RerollSurplus.config.enable_auto_reroll or G.STATE ~= G.STATES.SHOP then return end
+  if G.GAME.banned_keys and G.GAME.banned_keys[card_key] then return false end
+
   local center = G.P_CENTERS[card_key]
   if not center then return false end
-  if G.GAME.banned_keys and G.GAME.banned_keys[card_key] then return false end
   if center.no_appear_in_shop then return false end
 
   if center.yes_pool_flag and (not G.GAME.pool_flags or not G.GAME.pool_flags[center.yes_pool_flag]) then return false end
@@ -17,6 +18,7 @@ local function can_reroll_into(card_key)
   if ({
         Enhanced = true,
         Back = true,
+        Booster = true,
         Spectral = G.GAME.spectral_rate <= 0,
         Voucher = true
       })[center.set] then
@@ -26,28 +28,20 @@ local function can_reroll_into(card_key)
 end
 
 local function is_reroll_button(target)
-  if G.STATE == G.STATES.SHOP then
-    local reroll_button = G.shop:get_UIE_by_ID("next_round_button").parent.children[2]
-    if target == reroll_button then return true end
-  end
-end
-
-local function update_menu_target_list(object)
-  if object then
-    object.config.object:remove()
-    object.config.object = UIBox({ definition = RerollSurplus.UIDEF.reroll_targets_list("Current Targets:"), config = { type = "cm", parent = object } })
-    G.OVERLAY_MENU:recalculate()
-  end
+  return G.STATE == G.STATES.SHOP
+     and target.config.button == "reroll_shop"
+     and target.config.func == "can_reroll"
 end
 
 function RerollSurplus.FUNCS.prompt_target(target)
   if not RerollSurplus.Centers then RerollSurplus.FUNCS.process_centers() end
+
+  if type(RerollSurplus.config.reroll_limit) ~= 'number' then
+    RerollSurplus.config.reroll_limit = tonumber(RerollSurplus.config.reroll_limit) or 30
+  end
+
   if is_reroll_button(target) and RerollSurplus.config.enable_auto_reroll then
-    if next(RerollSurplus.collection_targets) and (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift") or G.CONTROLLER.held_buttons.triggerleft) then
-      if type(RerollSurplus.config.reroll_limit) ~= 'number' then
-        RerollSurplus.config.reroll_limit = tonumber(
-          RerollSurplus.config.reroll_limit) or 30
-      end
+    if next(RerollSurplus.collection_targets) and SurplusInputManager.is_shift_held() then
       RerollSurplus.FUNCS.auto_reroll(RerollSurplus.collection_targets)
     else
       G.FUNCS.surplus_open_targeting_window()
@@ -56,36 +50,33 @@ function RerollSurplus.FUNCS.prompt_target(target)
 end
 
 function RerollSurplus.FUNCS.clear_targets(from_button)
-  if next(RerollSurplus.collection_targets) and (from_button == true or (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift"))) then
+  if next(RerollSurplus.collection_targets) and (SurplusInputManager.is_shift_held() or from_button == true) then
     RerollSurplus.collection_targets = {}
-
     if RerollSurplus.targeting then
-      update_menu_target_list(G.OVERLAY_MENU:get_UIE_by_ID('surplus_targetsList'))
+      local def = RerollSurplus.UIDEF.reroll_targets_list("Current Targets:")
+      RerollSurplus.UI.updateObject('surplus_targetsList', def)
     elseif G.STATE == G.STATES.SHOP and not G.SETTINGS.paused then
-      update_hand_text({ sound = 'button', volume = 0.7, pitch = 0.8, delay = 0.3 },
-        { handname = "Reroll targets cleared" })
-      RerollSurplus.defer(function()
-        update_hand_text({ sound = 'button', volume = 0.7, pitch = 1.1, delay = 0 },
-          { mult = 0, chips = 0, handname = '', level = '' })
-      end, { delay = G.SETTINGS.GAMESPEED * 3 })
+      attention_text({
+        text = localize("b_Surplus_targets_cleared"),
+        scale = 0.7,
+        hold = 2 * G.SPEEDFACTOR,
+        align = 'cm',
+        offset = { x = 0, y = -2.5 }, major = G.ROOM_ATTACH,
+      })
     end
   end
 end
 
 -- Hook card clicks to add search targets
 RerollSurplus.Hook("before", Card, "click", function(self)
-  if self.area and self.area.config.collection and can_reroll_into(self.config.center_key)
-      and not util.contains(RerollSurplus.collection_targets, self.config.center_key) then
+  local is_targetable = self.area and self.area.config.collection and can_reroll_into(self.config.center_key)
+                              and not util.contains(RerollSurplus.collection_targets, self.config.center_key)
+  if is_targetable then
     table.insert(RerollSurplus.collection_targets, self.config.center_key)
-    RerollSurplus.UI.targets.added_target = self.config.center_key
-    RerollSurplus.adding_key = true
-    local set = self.config.center.set
 
-    if RerollSurplus.FUNCS.get_type_collection_UIBox_func(set) and RerollSurplus.in_collection and not RerollSurplus.collection_from_button then
-      RerollSurplus.UI.rerender_collection(set)
-      RerollSurplus.collection_from_button = true
-    elseif RerollSurplus.targeting then
-      update_menu_target_list(G.OVERLAY_MENU:get_UIE_by_ID('surplus_targetsList'))
+    if RerollSurplus.targeting then
+      local def = RerollSurplus.UIDEF.reroll_targets_list("Current Targets:")
+      RerollSurplus.UI.updateObject('surplus_targetsList', def)
     end
   end
 end)
@@ -99,29 +90,38 @@ SurplusInputManager:add_listener({ 'double_click' }, RerollSurplus.FUNCS.clear_t
 RerollSurplus.FUNCS.card_search_funcs = {
   search_funcs = {
     -- If searching for an exact set (i.e. "Planet"), show centers of the set first
-    set_matches_str = function(center)
+    set_matches_str = function(center, query)
       local Search = RerollSurplus.ACTIVE_SEARCH
       return center.set and Search.query:lower() == center.set:lower()
     end,
-    name_contains_str = function(center)
+    name_contains_str = function(center, query)
       local Search = RerollSurplus.ACTIVE_SEARCH
       return center.name and util.has_str(center.name, Search.query)
     end,
-    -- desc_contains_str = function(center)
-    --   local Search = RerollSurplus.ACTIVE_SEARCH
-    --   local description = G.localization.descriptions[center.set][center.key]
-    --   if description then
-    --     local name = description.name
-    --     local name_cleaned = type(name) == "table" and util.tableToString(name, '')
+    mod_contains_str = function(center, query)
+      local Search = RerollSurplus.ACTIVE_SEARCH
+      return center.original_mod and center.original_mod.name and util.has_str(center.original_mod.name, Search.query)
+          or util.has_str("vanilla", Search.query)
+    end,
+    desc_contains_str = function(center)
+      local Search = RerollSurplus.ACTIVE_SEARCH
+      local description = G.localization.descriptions[center.set][center.key]
+      if description then
+        local name = description.name
+        local name_cleaned = type(name) == "table" and util.tableToString(name, '') or name
 
-    --     local text = description.text
-    --     text = util.map_list(text, util.clean_loc_str)
-    --     text = table.concat(text, '')
+        local text = description.text
+        if type(text) == "table" then
+          text = util.map_list(text, util.clean_loc_str)
+          text = table.concat(text, '')
+        elseif type(text) == "string" then
+          text = util.clean_loc_str(text)
+        end
 
-    --     return name_cleaned and util.has_str(name_cleaned, Search.query)
-    --         or text and util.has_str(text, Search.query)
-    --   end
-    -- end,
+        return name_cleaned and util.has_str(name_cleaned, Search.query)
+            or text and util.has_str(text, Search.query)
+      end
+    end,
   },
 
   exclude_funcs = {
@@ -131,7 +131,7 @@ RerollSurplus.FUNCS.card_search_funcs = {
 }
 
 RerollSurplus.blacklisted_pools = util.tableToHashset { "Joker", "Tag" }
-RerollSurplus.blacklisted_sets = util.tableToHashset { "Stake", "Seal", "Back", "Sleeve" }
+RerollSurplus.blacklisted_sets = util.tableToHashset { "Stake", "Seal", "Back", "Sleeve", "Booster", "Default" }
 function RerollSurplus.FUNCS.process_centers()
   RerollSurplus.Centers = {}
   local seen = {}

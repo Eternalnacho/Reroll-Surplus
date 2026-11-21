@@ -69,31 +69,33 @@ function SurplusInputManager:controller_x(target)
   end
 end
 
+function SurplusInputManager.is_shift_held()
+  return love.keyboard.isDown("lshift")
+      or love.keyboard.isDown("rshift")
+      or G.CONTROLLER.held_buttons.triggerleft
+      or false
+end
+
 local controller_is_locked = function()
   return (G.CONTROLLER.locked and (not G.SETTINGS.paused or G.screenwipe))
       or G.CONTROLLER.locks.frame
 end
 
-local L_cursor_press_ref = G.CONTROLLER.L_cursor_press
-G.CONTROLLER.L_cursor_press = function(self, x, y)
+RerollSurplus.Hook("before", G.CONTROLLER, "L_cursor_press", function(self)
   if not controller_is_locked() then
     local target = (self.HID.touch and self.cursor_hover.target) or self.hovering.target or self.focused.target
     SurplusInputManager:left_click(target)
   end
-  return L_cursor_press_ref(self, x, y)
-end
+end)
 
-local queue_R_cursor_press_ref = G.CONTROLLER.queue_R_cursor_press
-G.CONTROLLER.queue_R_cursor_press = function(self, x, y)
+RerollSurplus.Hook("before", G.CONTROLLER, "queue_R_cursor_press", function(self)
   if not controller_is_locked() then
     local target = self.hovering.target or self.focused.target
     SurplusInputManager:right_click(target)
   end
-  return queue_R_cursor_press_ref(self, x, y)
-end
+end)
 
-local capture_focused_input_ref = G.CONTROLLER.capture_focused_input
-G.CONTROLLER.capture_focused_input = function(self, button, input_type, dt)
+RerollSurplus.Hook("before", G.CONTROLLER, "capture_focused_input", function(self, button, input_type, dt)
   if input_type == 'press' and self.focused then
     local target = self.focused.target
     if button == 'rightstick' then
@@ -102,5 +104,4 @@ G.CONTROLLER.capture_focused_input = function(self, button, input_type, dt)
       SurplusInputManager:controller_x(target)
     end
   end
-  return capture_focused_input_ref(self, button, input_type, dt)
-end
+end)

@@ -17,18 +17,14 @@ G.FUNCS.surplus_num_input = function(e)
   G.FUNCS.text_input(e)
 end
 
-local text_input_ref = G.FUNCS.text_input
-G.FUNCS.text_input = function(e, ...)
+RerollSurplus.Hook("before", G.FUNCS, "text_input", function(e)
   RerollSurplus.nums_only = e.from_num_input and true
-  text_input_ref(e, ...)
-end
+end)
 
 -- I can't think of another way to guarantee that the value gets converted back to a number safely.
-local trans_text_ref = TRANSPOSE_TEXT_INPUT
-TRANSPOSE_TEXT_INPUT = function(...)
-  trans_text_ref(...)
+RerollSurplus.Hook("after", _G, "TRANSPOSE_TEXT_INPUT", function()
   if RerollSurplus.nums_only then
     local hook_config = G.CONTROLLER.text_input_hook.config.ref_table
     hook_config.ref_table[hook_config.ref_value] = type(tonumber(GET_TEXT_FROM_INPUT())) == "number" and tonumber(GET_TEXT_FROM_INPUT()) or 0
   end
-end
+end)

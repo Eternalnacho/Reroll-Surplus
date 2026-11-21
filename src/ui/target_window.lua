@@ -5,7 +5,7 @@ RerollSurplus.UIDEF.get_target_window = function()
   return create_UIBox_generic_options({
     colour = G.C.BLACK,
     outline_colour = R.C.outline_colour,
-    back_func = "exit_overlay_menu",
+    back_func = "surplus_exit_targeting_window",
     contents = {
       R.Row({}, {
         R.Col(
@@ -156,18 +156,13 @@ end
 --#region Targets List
 
 local get_list_display = function()
-  local display_list = R.Col(
-    { colour = G.C.GREY },
-    {
-      R.Row({}, {
-        R.Col(
-          { colour = G.C.GREY, padding = 0.1, r = 0.2 },
-          { --[[ Targets List ]] }
-        )
-      })
-    }
-  )
-  local targets_list = display_list.nodes[1].nodes[1].nodes
+  local display_list = R.Row({}, {
+      R.Col(
+        { colour = G.C.GREY, padding = 0.1, r = 0.2 },
+        { --[[ Targets List ]] }
+      )
+    })
+  local targets_list = display_list.nodes[1].nodes
 
   for i = 1, #RerollSurplus.collection_targets do
     -- Get localization entry if exists, if not use name or original key
@@ -190,8 +185,8 @@ local get_list_display = function()
 
   -- Use a default line if the list of targets is empty.
   local default_line = R.Row(
-    { padding = 0.05, r = 0.2, minw = 3 },
-    { R.Text({ padding = 0.05, text = '', colour = G.C.WHITE, scale = 0.4 }) }
+    { r = 0.2, minw = 3 },
+    { R.Text { text = '', colour = G.C.WHITE, scale = 0.4 } }
   )
   if not next(targets_list) then table.insert(targets_list, default_line) end
 
@@ -200,11 +195,15 @@ end
 
 RerollSurplus.UIDEF.reroll_targets_list = function(header)
   local display_list = get_list_display()
-  table.insert(display_list.nodes, 1,
-    R.Row { minh = 0.7, nodes = { R.Text { text = header, colour = G.C.UI.TEXT_LIGHT, scale = 0.5 } } })
+
+  local display = {
+    R.Row ({ minh = 0.7 }, { R.Text { text = header, colour = G.C.UI.TEXT_LIGHT, scale = 0.5 } }),
+    R.Row ({ minh = 3.5, colour = G.C.GREY, r = 0.2 }, { R.UIScrollBox({display_list}, 4, 3.5, 0.1) }),
+  }
+
   return R.UIBox (
     { minh = 0.0, minw = 0.0, bg_colour = R.C.inactive },
-    { R.Row ({ r = 0.2, padding = 0.15 }, display_list.nodes) }
+    { R.Row ({ r = 0.2, padding = 0.15 }, display) }
   )
 end
 
@@ -234,7 +233,7 @@ function RerollSurplus.FUNCS.make_card_areas()
   for i = 1, rows do
     local area = CardArea(                                                                    --insert this cardarea into the table we feed to our ui
       0, 0,                                                                                   --position
-      card_limit * G.CARD_W * 0.6,                                                            --width of cardarea
+      card_limit * (G.CARD_W + 0.5) * 0.6,                                                  --width of cardarea
       0.95 * G.CARD_H * 0.6,                                                                  --height of cardarea
       { card_limit = card_limit, type = 'title_2', highlight_limit = 0, collection = true }   --basic config for a cardarea
     )

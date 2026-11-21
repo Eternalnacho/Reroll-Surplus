@@ -12,9 +12,9 @@ function G.FUNCS.surplus_exit_reroll_config(e)
   G.FUNCS.surplus_open_targeting_window()
 end
 
-function G.FUNCS.surplus_exit_search_collection()
+function G.FUNCS.surplus_exit_targeting_window(e)
   if G.SETTINGS.paused then
-    RerollSurplus.collection_from_button = nil
+    RerollSurplus.targeting = false
     G.FUNCS.exit_overlay_menu()
   end
 end
@@ -32,8 +32,10 @@ function G.FUNCS.surplus_view_options(e)
 end
 
 function G.FUNCS.surplus_start_reroll(e)
-  G.FUNCS.exit_overlay_menu()
-  RerollSurplus.defer(function()
-    RerollSurplus.FUNCS.auto_reroll(RerollSurplus.collection_targets)
-  end, { delay = 0.4, blockable = true })
+  if next(RerollSurplus.collection_targets) then
+    G.FUNCS.exit_overlay_menu()
+    RerollSurplus.defer(function()
+      RerollSurplus.FUNCS.auto_reroll(RerollSurplus.collection_targets)
+    end, { delay = 0.4, blockable = true })
+  end
 end

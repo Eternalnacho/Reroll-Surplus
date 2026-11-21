@@ -8,16 +8,16 @@ RerollSurplus = {
 }
 
 -- Get directory loader
-local load_dir, load_folders = assert(SMODS.load_file("src/loader.lua"))()
+local load_dir = assert(SMODS.load_file("src/loader.lua"))()
 
 -- Load directories
 for _, path in ipairs {
-  "src/functions",
-  "src/objects",
-  "src/reroller",
-  "src/ui",
+  "functions",
+  "objects",
+  "reroller",
+  "ui",
 } do
-  load_dir(path)
+  load_dir(path, "src/")
 end
 
 -- Load config page
