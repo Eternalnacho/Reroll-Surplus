@@ -1,6 +1,5 @@
 -- AUTO-REROLL FUNCTION FOR REROLL BUTTON
 RerollSurplus.collection_targets = {}
-RerollSurplus.UI.targets = { added_target = '' }
 RerollSurplus.RNG_states = { prev = nil, latest = nil }
 
 function RerollSurplus.FUNCS.auto_reroll(targets)
