@@ -10,12 +10,12 @@ RerollSurplus.REROLL = {
   spend_limit_flag = nil,
   reroll_limit_flag = nil,
   reroll_limit_price = RerollSurplus.config.reroll_limit,
-  reroll_spend_limit = RerollSurplus.config.reroll_spend_limit,
+  reroll_safety_threshold = RerollSurplus.config.reroll_safety_threshold,
 }
 
 function RerollSurplus.REROLL.simulate_reroll()
   RerollSurplus.reroll_cost = RerollSurplus.reroll_cost or G.GAME.current_round.reroll_cost
-  if (RerollSurplus.REROLL.spent + RerollSurplus.reroll_cost) > (to_number(G.GAME.dollars) - RerollSurplus.config.reroll_spend_limit) then
+  if (RerollSurplus.REROLL.spent + RerollSurplus.reroll_cost) > (to_number(G.GAME.dollars) - RerollSurplus.config.reroll_safety_threshold) then
     RerollSurplus.REROLL.spend_limit_flag = true
     return
   end

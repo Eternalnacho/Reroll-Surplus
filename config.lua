@@ -19,7 +19,7 @@ return {
   ["enable_auto_reroll"] = true,
   ["skip_reroll_anims"] = true,
   ["reroll_limit"] = 30,
-  ["reroll_spend_limit"] = 25,
+  ["reroll_safety_threshold"] = 25,
 
   -- Mod Menu
   ["mod_icons_only"] = false,

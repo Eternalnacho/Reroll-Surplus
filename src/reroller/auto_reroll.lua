@@ -43,7 +43,7 @@ function RerollSurplus.FUNCS.auto_roll_event(targets)
   RerollSurplus.REROLL.spent = RerollSurplus.REROLL.spent + G.GAME.current_round.reroll_cost - 1
   RerollSurplus.REROLL.rerolls = RerollSurplus.REROLL.rerolls + 1
   -- Check for either limit flag
-  if (RerollSurplus.REROLL.spent + G.GAME.current_round.reroll_cost) > (to_number(G.GAME.dollars) - RerollSurplus.config.reroll_spend_limit) then RerollSurplus.REROLL.spend_limit_flag = true end
+  if (RerollSurplus.REROLL.spent + G.GAME.current_round.reroll_cost) > (to_number(G.GAME.dollars) - RerollSurplus.config.reroll_safety_threshold) then RerollSurplus.REROLL.spend_limit_flag = true end
   if RerollSurplus.REROLL.rerolls >= RerollSurplus.config.reroll_limit then RerollSurplus.REROLL.reroll_limit_flag = true end
 
   -- Re-call event until something stops

@@ -73,7 +73,7 @@ function SMODS.current_mod.config_tab()
                     id = "surplus_set_spend_limit",
                     colour = RerollSurplus.config.enable_auto_reroll and R.C.active or R.C.inactive,
                     hooked_colour = RerollSurplus.config.enable_auto_reroll and darken(R.C.active, 0.3) or R.C.inactive,
-                    ref_value = "reroll_spend_limit", default = 25,
+                    ref_value = "reroll_safety_threshold", default = 25,
                   }
                 })
               })
