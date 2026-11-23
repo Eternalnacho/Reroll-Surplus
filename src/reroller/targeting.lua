@@ -1,6 +1,7 @@
 local R = RerollSurplus.UI
 local util = RerollSurplus.utils
 
+RerollSurplus.collection_targets = {}
 -- thank you Overstock and god bless you
 local function can_reroll_into(card_key)
   if not RerollSurplus.config.enable_auto_reroll or G.STATE ~= G.STATES.SHOP then return end
@@ -42,7 +43,7 @@ function RerollSurplus.FUNCS.prompt_target(target)
 
   if is_reroll_button(target) and RerollSurplus.config.enable_auto_reroll then
     if next(RerollSurplus.collection_targets) and SurplusInputManager.is_shift_held() then
-      RerollSurplus.FUNCS.auto_reroll(RerollSurplus.collection_targets)
+      G.FUNCS.surplus_start_reroll()
     else
       G.FUNCS.surplus_open_targeting_window()
     end

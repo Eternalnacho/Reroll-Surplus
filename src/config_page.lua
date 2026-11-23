@@ -86,7 +86,7 @@ function SMODS.current_mod.config_tab()
 end
 
 function RerollSurplus.UI.update_config()
-  if RerollSurplus.collection_from_button then
+  if RerollSurplus.targeting then
     RerollSurplus.UI.rerender(RerollSurplus.UI.reroll_options, true)
   else
     G.ACTIVE_MOD_UI = SMODS.Mods["RerollSurplus"]

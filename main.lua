@@ -6,6 +6,7 @@ RerollSurplus = {
 
   config = SMODS.current_mod.config
 }
+G.E_MANAGER.queues.surplus_reroll_sim = {}
 
 -- Get directory loader
 local load_dir = assert(SMODS.load_file("src/loader.lua"))()

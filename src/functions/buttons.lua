@@ -8,7 +8,7 @@ function G.FUNCS.surplus_open_targeting_window(e)
 end
 
 function G.FUNCS.surplus_exit_reroll_config(e)
-  SMODS.save_mod_config(RerollSurplus)
+  SMODS.save_mod_config(SMODS.Mods["RerollSurplus"])
   G.FUNCS.surplus_open_targeting_window()
 end
 
@@ -25,15 +25,17 @@ function G.FUNCS.surplus_clear_targets(e)
   end
 end
 
-function G.FUNCS.surplus_view_options(e)
+function G.FUNCS.surplus_open_reroll_config(e)
   G.SETTINGS.paused = true
   G.FUNCS.overlay_menu{ definition = RerollSurplus.UI.reroll_options() }
   G.OVERLAY_MENU:recalculate()
 end
 
 function G.FUNCS.surplus_start_reroll(e)
+  RerollSurplus.REROLL.a_limit = RerollSurplus.config.reroll_limit
+  RerollSurplus.REROLL.m_savings = RerollSurplus.config.reroll_safety_threshold
   if next(RerollSurplus.collection_targets) then
-    G.FUNCS.exit_overlay_menu()
+    G.FUNCS.surplus_exit_targeting_window()
     RerollSurplus.defer(function()
       RerollSurplus.FUNCS.auto_reroll(RerollSurplus.collection_targets)
     end, { delay = 0.4, blockable = true })

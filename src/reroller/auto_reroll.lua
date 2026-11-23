@@ -1,10 +1,21 @@
 -- AUTO-REROLL FUNCTION FOR REROLL BUTTON
-RerollSurplus.collection_targets = {}
-RerollSurplus.RNG_states = { prev = nil, latest = nil }
+RerollSurplus.REROLL = {
+  key_queue = {},
+  tag_cache = {},
+  tag_queue = {},
+  tag_args = {},
+  edition_flags = {},
+  rerolls = 0,
+  spent = 0,
+  a_limit = RerollSurplus.config.reroll_limit,
+  m_savings = RerollSurplus.config.reroll_safety_threshold,
+  RNG_states = { prev = nil, latest = nil }
+}
+local Reroller = RerollSurplus.REROLL
 
 function RerollSurplus.FUNCS.auto_reroll(targets)
   -- Start the reroll sim w/ shop_jokers as the first iteration
-  for _, v in pairs(G.shop_jokers.cards) do table.insert(RerollSurplus.REROLL.key_queue, v.config.center_key) end
+  for _, v in pairs(G.shop_jokers.cards) do table.insert(Reroller.key_queue, v.config.center_key) end
   -- Use predictive rerolling for skipping animations
   if RerollSurplus.config.skip_reroll_anims then
     RerollSurplus.FUNCS.predictive_reroll(targets)
@@ -19,42 +30,31 @@ function RerollSurplus.FUNCS.auto_reroll(targets)
 end
 
 function RerollSurplus.FUNCS.auto_roll_event(targets)
-  if RerollSurplus.REROLL.spend_limit_flag or RerollSurplus.REROLL.reroll_limit_flag then
+  Reroller.reroll_cost = G.GAME.current_round.reroll_cost
+  -- Fake "reroll button"
+  local reroll_check = {config = {}}
+  G.FUNCS.can_reroll(reroll_check)
+  -- Check interrupts
+  if RerollSurplus.FUNCS.check_keys(targets) or RerollSurplus.FUNCS.check_limits()
+      or not reroll_check.config.button then
     G.CONTROLLER.locks.shop_reroll = false
     return true
   end
-  local b = {config = {}}
-  G.FUNCS.can_reroll(b)
-  if not b.config.button then
-    G.CONTROLLER.locks.shop_reroll = false
-    return true
-  end
-  if RerollSurplus.FUNCS.check_keys(targets) then
-    G.CONTROLLER.locks.shop_reroll = false
-    return true
-  end
+
   G.FUNCS.reroll_shop()
 
   -- Empty key queue and edition flags
-  RerollSurplus.REROLL.key_queue = {}
-  RerollSurplus.REROLL.edition_flags = {}
+  Reroller.key_queue = {}
+  Reroller.edition_flags = {}
 
-  -- Increment amount spent tracker and reroll count tracker
-  RerollSurplus.REROLL.spent = RerollSurplus.REROLL.spent + G.GAME.current_round.reroll_cost - 1
-  RerollSurplus.REROLL.rerolls = RerollSurplus.REROLL.rerolls + 1
-  -- Check for either limit flag
-  if (RerollSurplus.REROLL.spent + G.GAME.current_round.reroll_cost) > (to_number(G.GAME.dollars) - RerollSurplus.config.reroll_safety_threshold) then RerollSurplus.REROLL.spend_limit_flag = true end
-  if RerollSurplus.REROLL.rerolls >= RerollSurplus.config.reroll_limit then RerollSurplus.REROLL.reroll_limit_flag = true end
+  -- Increment reroll count tracker
+  Reroller.rerolls = Reroller.rerolls + 1
 
   -- Re-call event until something stops
   RerollSurplus.defer(function()
     for _, card in pairs(G.shop_jokers.cards) do
-      RerollSurplus.REROLL.key_queue[#RerollSurplus.REROLL.key_queue+1] = card.config.center_key
-      if card.edition then RerollSurplus.REROLL.edition_flags[card.edition.key] = true end
-    end
-    if RerollSurplus.FUNCS.check_keys(targets) then
-      G.CONTROLLER.locks.shop_reroll = false
-      return true
+      Reroller.key_queue[#Reroller.key_queue+1] = card.config.center_key
+      if card.edition then Reroller.edition_flags[card.edition.key] = true end
     end
     RerollSurplus.FUNCS.auto_roll_event(RerollSurplus.collection_targets)
   end, {blocking = false, blockable = true})
@@ -67,21 +67,24 @@ function RerollSurplus.FUNCS.predictive_reroll(targets)
   local used_jokers = copy_table(G.GAME.used_jokers)
 
   RerollSurplus.in_reroll_sim = true
-  while not RerollSurplus.FUNCS.check_keys(targets) and not RerollSurplus.REROLL.spend_limit_flag and not RerollSurplus.REROLL.reroll_limit_flag do
-    RerollSurplus.REROLL.edition_flags = {}
-    RerollSurplus.REROLL.simulate_reroll()
-    RerollSurplus.RNG_states.prev = RerollSurplus.RNG_states.latest
-    RerollSurplus.RNG_states.latest = copy_table(G.GAME.pseudorandom)
+  while (not RerollSurplus.FUNCS.check_keys(targets) and not RerollSurplus.FUNCS.check_limits()) do
+    Reroller.tag_queue = {}
+    Reroller.edition_flags = {}
+    Reroller.simulate_reroll()
+    Reroller.RNG_states.prev = Reroller.RNG_states.latest
+    Reroller.RNG_states.latest = copy_table(G.GAME.pseudorandom)
   end
   RerollSurplus.in_reroll_sim = nil
 
   -- Do all the calculations with none of the actual rerolls.
-  if RerollSurplus.RNG_states.prev then
-    RerollSurplus.REROLL.skip_to_last()
+  if Reroller.RNG_states.prev then
+    Reroller.skip_to_last()
   end
   -- Set the RNG state to one reroll from results, so we can reroll once into the correct spot
   G.GAME.used_jokers = used_jokers
-  G.GAME.pseudorandom = RerollSurplus.RNG_states.prev or RNG_state
+  G.GAME.pseudorandom = Reroller.RNG_states.prev or RNG_state
+
+  G.E_MANAGER:clear_queue('surplus_reroll_sim')
   -- Reroll
   RerollSurplus.defer(G.FUNCS.reroll_shop)
   -- Display results
@@ -92,12 +95,19 @@ end
 
 function RerollSurplus.FUNCS.check_keys(targets)
   for _, key in pairs(targets) do
-    if RerollSurplus.utils.contains(RerollSurplus.REROLL.key_queue, key) then
+    if RerollSurplus.utils.contains(Reroller.key_queue, key) then
       return true
-    elseif RerollSurplus.REROLL.edition_flags[''..key] then
+    elseif Reroller.edition_flags[''..key] then
       return true
     end
   end
+end
+
+function RerollSurplus.FUNCS.check_limits(cost_mod, count_mod)
+  local reroll_cost = (Reroller.reroll_cost or G.GAME.current_round.reroll_cost) + (cost_mod or 0)
+  local savings_flag = (to_number(G.GAME.dollars) - Reroller.spent - reroll_cost) < Reroller.m_savings
+  local attempt_flag = Reroller.rerolls >= (Reroller.a_limit + (count_mod or 0))
+  return savings_flag or attempt_flag
 end
 
 function RerollSurplus.FUNCS.display_results(targets)
@@ -109,21 +119,18 @@ function RerollSurplus.FUNCS.display_results(targets)
       play_sound('timpani')
     end, {delay = 0.5})
   end
-  print("Total rerolls: " .. RerollSurplus.REROLL.rerolls)
+  print("Total rerolls: " .. Reroller.rerolls)
 end
 
 function RerollSurplus.FUNCS.reset_rerolls()
-  RerollSurplus.RNG_states = { prev = nil, latest = nil }
+  RerollSurplus.REROLL.RNG_states = { prev = nil, latest = nil }
   RerollSurplus.REROLL.rerolls = 0
-  RerollSurplus.REROLL.spent = 0
   RerollSurplus.REROLL.key_queue = {}
   RerollSurplus.REROLL.edition_flags = {}
   RerollSurplus.REROLL.tag_cache = {}
   RerollSurplus.REROLL.tag_queue = {}
-  RerollSurplus.reroll_cost = nil
-  RerollSurplus.reroll_cost_inc = nil
-  RerollSurplus.free_rerolls = nil
-  RerollSurplus.REROLL.spend_limit_flag = nil
-  RerollSurplus.REROLL.reroll_limit_flag = nil
+  RerollSurplus.REROLL.reroll_cost = nil
+  RerollSurplus.REROLL.reroll_cost_inc = nil
+  RerollSurplus.REROLL.free_rerolls = nil
 end
 

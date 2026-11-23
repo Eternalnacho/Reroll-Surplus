@@ -94,7 +94,7 @@ function RerollSurplus.defer(func, args) -- Stealing this one from Emma holy mol
     end,
     blocking = args.blocking or true,
     blockable = args.blockable or false,
-  }))
+  }), args.queue)
 end
 
 -- math functions
@@ -202,3 +202,5 @@ RerollSurplus.Hook = function(hook_type, table, funcname, hook, prevent_run)
   if not hook then return end
   if hooks[hook_type] then hooks[hook_type](table, funcname, hook, hook_type == 'after' and prevent_run) end
 end
+
+RerollSurplus.utils.noop = function() end

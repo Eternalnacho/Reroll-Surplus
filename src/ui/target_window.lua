@@ -117,12 +117,12 @@ RerollSurplus.UIDEF.auto_reroll_menu_UI = function()
             {
               UIBox_button(
                 {
-                  button = 'surplus_view_options',
+                  button = 'surplus_open_reroll_config',
                   label = { "Reroll Options" },
                   colour = G.C.FILTER,
                   minw = 3,
                   minh = 0.7,
-                  id = 'surplus_view_options_button'
+                  id = 'surplus_open_reroll_config_button'
                 }
               ),
             }
