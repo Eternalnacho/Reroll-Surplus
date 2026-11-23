@@ -75,7 +75,7 @@ function RerollSurplus.FUNCS.predictive_reroll(targets)
     Reroller.RNG_states.latest = copy_table(G.GAME.pseudorandom)
   end
   RerollSurplus.in_reroll_sim = nil
-
+  G.E_MANAGER:clear_queue('surplus_reroll_sim')
   -- Do all the calculations with none of the actual rerolls.
   if Reroller.RNG_states.prev then
     Reroller.skip_to_last()
@@ -84,7 +84,6 @@ function RerollSurplus.FUNCS.predictive_reroll(targets)
   G.GAME.used_jokers = used_jokers
   G.GAME.pseudorandom = Reroller.RNG_states.prev or RNG_state
 
-  G.E_MANAGER:clear_queue('surplus_reroll_sim')
   -- Reroll
   RerollSurplus.defer(G.FUNCS.reroll_shop)
   -- Display results

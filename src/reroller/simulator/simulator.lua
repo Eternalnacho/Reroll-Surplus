@@ -27,11 +27,9 @@ function Reroller.simulate_reroll()
   Reroller.rerolls = Reroller.rerolls + 1
   
   if not RerollSurplus.FUNCS.check_limits(1) and next(G.jokers.cards) then
-    RerollSurplus.skip_anims = true
     Reroller.in_reroll_sim_context = true
     SMODS.calculate_context({reroll_shop = true, cost = Reroller.reroll_cost})
     Reroller.in_reroll_sim_context = nil
-    RerollSurplus.skip_anims = nil
   end
 end
 
@@ -49,8 +47,6 @@ function Reroller.get_next_shop_key()
   -- Remove the card
   card.states.visible = nil
   card:remove()
-  -- if card.config.center.consumeable then RerollSurplus.defer(function() card:remove() end, { blockable = true })
-  -- else card:remove() end
   -- Keep card info stored in relevant places
   Reroller.key_queue[#Reroller.key_queue+1] = key
   Reroller.edition_flags[(edition or 'null')] = true
