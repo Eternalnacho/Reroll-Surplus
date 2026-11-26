@@ -9,7 +9,8 @@ RerollSurplus.REROLL = {
   spent = 0,
   a_limit = RerollSurplus.config.reroll_limit,
   m_savings = RerollSurplus.config.reroll_safety_threshold,
-  RNG_states = { prev = nil, latest = nil }
+  RNG_states = { prev = nil, latest = nil },
+  result = {}
 }
 local Reroller = RerollSurplus.REROLL
 
@@ -23,7 +24,7 @@ function RerollSurplus.FUNCS.auto_reroll(targets)
     -- Use a "normal" auto-reroll otherwise
     RerollSurplus.FUNCS.auto_roll_event(targets)
     -- Display results
-    RerollSurplus.FUNCS.display_results(targets)
+    RerollSurplus.FUNCS.display_results()
     -- Reset values to defaults for next time
     RerollSurplus.FUNCS.reset_rerolls()
   end
@@ -87,9 +88,9 @@ function RerollSurplus.FUNCS.predictive_reroll(targets)
   -- Reroll
   RerollSurplus.defer(G.FUNCS.reroll_shop)
   -- Display results
-  RerollSurplus.FUNCS.display_results(targets)
+  RerollSurplus.defer(RerollSurplus.FUNCS.display_results)
   -- Reset values to defaults for next time
-  RerollSurplus.FUNCS.reset_rerolls()
+  RerollSurplus.defer(RerollSurplus.FUNCS.reset_rerolls)
 end
 
 function RerollSurplus.FUNCS.check_keys(targets)
@@ -109,16 +110,26 @@ function RerollSurplus.FUNCS.check_limits(cost_mod, count_mod)
   return savings_flag or attempt_flag
 end
 
-function RerollSurplus.FUNCS.display_results(targets)
+function RerollSurplus.FUNCS.display_results()
+  local targets = RerollSurplus.collection_targets
+  local total_rerolls = Reroller.rerolls
+  local keys_found = RerollSurplus.FUNCS.check_keys(targets)
+
+  Reroller.result = {
+    text = localize("b_Surplus_total_rerolls") .. total_rerolls,
+    scale = 0.7,
+    hold = 2 * G.SPEEDFACTOR,
+    align = 'cm',
+    offset = { x = 0, y = -2.5 }, major = G.ROOM_ATTACH,
+  }
   -- Display results for posterity, and for better tracking
-  if not RerollSurplus.FUNCS.check_keys(targets) then print("Reached reroll limit, joker not found")
-  else
+  if keys_found then
     RerollSurplus.defer(function()
       play_sound('holo1')
       play_sound('timpani')
     end, {delay = 0.5})
   end
-  print("Total rerolls: " .. Reroller.rerolls)
+  RerollSurplus.defer(function() attention_text(Reroller.result) end, { delay = 0.5 })
 end
 
 function RerollSurplus.FUNCS.reset_rerolls()

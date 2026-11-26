@@ -43,6 +43,7 @@ function RerollSurplus.FUNCS.prompt_target(target)
 
   if is_reroll_button(target) and RerollSurplus.config.enable_auto_reroll then
     if next(RerollSurplus.collection_targets) and SurplusInputManager.is_shift_held() then
+      if RerollSurplus.REROLL.result.AT then RerollSurplus.REROLL.result.AT:remove() end
       G.FUNCS.surplus_start_reroll()
     else
       G.FUNCS.surplus_open_targeting_window()
@@ -57,6 +58,7 @@ function RerollSurplus.FUNCS.clear_targets(from_button)
       local def = RerollSurplus.UIDEF.reroll_targets_list("Current Targets:")
       RerollSurplus.UI.updateObject('surplus_targetsList', def)
     elseif G.STATE == G.STATES.SHOP and not G.SETTINGS.paused then
+      if RerollSurplus.REROLL.result.AT then RerollSurplus.REROLL.result.AT:remove() end
       attention_text({
         text = localize("b_Surplus_targets_cleared"),
         scale = 0.7,
