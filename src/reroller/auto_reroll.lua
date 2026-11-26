@@ -19,14 +19,10 @@ function RerollSurplus.FUNCS.auto_reroll(targets)
   for _, v in pairs(G.shop_jokers.cards) do table.insert(Reroller.key_queue, v.config.center_key) end
   -- Use predictive rerolling for skipping animations
   if RerollSurplus.config.skip_reroll_anims then
-    RerollSurplus.FUNCS.predictive_reroll(targets)
+    RerollSurplus.FUNCS.reroll_anim_skip(targets)
+  -- Use a "normal" auto-reroll otherwise
   else
-    -- Use a "normal" auto-reroll otherwise
     RerollSurplus.FUNCS.auto_roll_event(targets)
-    -- Display results
-    RerollSurplus.FUNCS.display_results()
-    -- Reset values to defaults for next time
-    RerollSurplus.FUNCS.reset_rerolls()
   end
 end
 
@@ -39,6 +35,10 @@ function RerollSurplus.FUNCS.auto_roll_event(targets)
   if RerollSurplus.FUNCS.check_keys(targets) or RerollSurplus.FUNCS.check_limits()
       or not reroll_check.config.button then
     G.CONTROLLER.locks.shop_reroll = false
+    -- Display results
+    RerollSurplus.FUNCS.display_results()
+    -- Reset values to defaults for next time
+    RerollSurplus.FUNCS.reset_rerolls()
     return true
   end
 
@@ -62,7 +62,7 @@ function RerollSurplus.FUNCS.auto_roll_event(targets)
   return true
 end
 
-function RerollSurplus.FUNCS.predictive_reroll(targets)
+function RerollSurplus.FUNCS.reroll_anim_skip(targets)
   -- Save the RNG state for later, so we can default the game state to this
   local RNG_state = copy_table(G.GAME.pseudorandom)
   local used_jokers = copy_table(G.GAME.used_jokers)
