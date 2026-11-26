@@ -37,7 +37,7 @@ function G.FUNCS.surplus_start_reroll(e)
   if next(RerollSurplus.collection_targets) then
     G.FUNCS.surplus_exit_targeting_window()
     RerollSurplus.defer(function()
-      RerollSurplus.FUNCS.auto_reroll(RerollSurplus.collection_targets)
+      RerollSurplus.FUNCS.start_auto_reroll(RerollSurplus.collection_targets)
     end, { delay = 0.4, blockable = true })
   end
 end

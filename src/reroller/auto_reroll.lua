@@ -14,7 +14,7 @@ RerollSurplus.REROLL = {
 }
 local Reroller = RerollSurplus.REROLL
 
-function RerollSurplus.FUNCS.auto_reroll(targets)
+function RerollSurplus.FUNCS.start_auto_reroll(targets)
   -- Start the reroll sim w/ shop_jokers as the first iteration
   for _, v in pairs(G.shop_jokers.cards) do table.insert(Reroller.key_queue, v.config.center_key) end
   -- Use predictive rerolling for skipping animations
@@ -22,11 +22,11 @@ function RerollSurplus.FUNCS.auto_reroll(targets)
     RerollSurplus.FUNCS.reroll_anim_skip(targets)
   -- Use a "normal" auto-reroll otherwise
   else
-    RerollSurplus.FUNCS.auto_roll_event(targets)
+    RerollSurplus.FUNCS.auto_reroll_event(targets)
   end
 end
 
-function RerollSurplus.FUNCS.auto_roll_event(targets)
+function RerollSurplus.FUNCS.auto_reroll_event(targets)
   Reroller.reroll_cost = G.GAME.current_round.reroll_cost
   -- Fake "reroll button"
   local reroll_check = {config = {}}
@@ -57,7 +57,7 @@ function RerollSurplus.FUNCS.auto_roll_event(targets)
       Reroller.key_queue[#Reroller.key_queue+1] = card.config.center_key
       if card.edition then Reroller.edition_flags[card.edition.key] = true end
     end
-    RerollSurplus.FUNCS.auto_roll_event(RerollSurplus.collection_targets)
+    RerollSurplus.FUNCS.auto_reroll_event(RerollSurplus.collection_targets)
   end, {blocking = false, blockable = true})
   return true
 end
