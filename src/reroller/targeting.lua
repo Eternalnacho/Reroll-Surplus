@@ -28,21 +28,15 @@ local function can_reroll_into(card_key)
   return true
 end
 
-local function is_reroll_button(target)
-  return G.STATE == G.STATES.SHOP
-     and target.config.button == "reroll_shop"
-     and target.config.func == "can_reroll"
-end
-
-function RerollSurplus.FUNCS.prompt_target(target)
+function RerollSurplus.FUNCS.auto_reroll_button(target)
   if not RerollSurplus.Centers then RerollSurplus.FUNCS.process_centers() end
 
   if type(RerollSurplus.config.reroll_limit) ~= 'number' then
     RerollSurplus.config.reroll_limit = tonumber(RerollSurplus.config.reroll_limit) or 30
   end
 
-  if is_reroll_button(target) and RerollSurplus.config.enable_auto_reroll then
-    if next(RerollSurplus.collection_targets) and SurplusInputManager.is_shift_held() then
+  if target.config.reroll_surplus_prompt_button and not RerollSurplus.REROLL.in_search then
+    if next(RerollSurplus.collection_targets) then
       if RerollSurplus.REROLL.result.AT then RerollSurplus.REROLL.result.AT:remove() end
       G.FUNCS.surplus_start_reroll()
     else
@@ -85,7 +79,7 @@ RerollSurplus.Hook("before", Card, "click", function(self)
 end)
 
 -- Reroller controls
-SurplusInputManager:add_listener({ 'right_click', 'right_stick' }, RerollSurplus.FUNCS.prompt_target)
+SurplusInputManager:add_listener({ 'right_click', 'right_stick' }, RerollSurplus.FUNCS.auto_reroll_button)
 SurplusInputManager:add_listener({ 'double_click' }, RerollSurplus.FUNCS.clear_targets)
 
 
@@ -93,15 +87,15 @@ SurplusInputManager:add_listener({ 'double_click' }, RerollSurplus.FUNCS.clear_t
 RerollSurplus.FUNCS.card_search_funcs = {
   search_funcs = {
     -- If searching for an exact set (i.e. "Planet"), show centers of the set first
-    set_matches_str = function(center, query)
+    set_matches_str = function(center)
       local Search = RerollSurplus.ACTIVE_SEARCH
       return center.set and Search.query:lower() == center.set:lower()
     end,
-    name_contains_str = function(center, query)
+    name_contains_str = function(center)
       local Search = RerollSurplus.ACTIVE_SEARCH
       return center.name and util.has_str(center.name, Search.query)
     end,
-    mod_contains_str = function(center, query)
+    mod_contains_str = function(center)
       local Search = RerollSurplus.ACTIVE_SEARCH
       return center.original_mod and center.original_mod.name and util.has_str(center.original_mod.name, Search.query)
           or util.has_str("vanilla", Search.query)

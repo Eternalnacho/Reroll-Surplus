@@ -1,6 +1,7 @@
 -- BUTTON FUNCTIONS
 
 function G.FUNCS.surplus_open_targeting_window(e)
+  if not RerollSurplus.Centers then RerollSurplus.FUNCS.process_centers() end
   G.SETTINGS.paused = true
   RerollSurplus.targeting = true
   G.FUNCS.overlay_menu{ definition = RerollSurplus.UIDEF.get_target_window() }

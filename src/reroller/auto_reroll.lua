@@ -22,6 +22,7 @@ function RerollSurplus.FUNCS.start_auto_reroll(targets)
     RerollSurplus.FUNCS.reroll_anim_skip(targets)
   -- Use a "normal" auto-reroll otherwise
   else
+    Reroller.in_search = true
     RerollSurplus.FUNCS.auto_reroll_event(targets)
   end
 end
@@ -32,7 +33,7 @@ function RerollSurplus.FUNCS.auto_reroll_event(targets)
   local reroll_check = {config = {}}
   G.FUNCS.can_reroll(reroll_check)
   -- Check interrupts
-  if RerollSurplus.FUNCS.check_keys(targets) or RerollSurplus.FUNCS.check_limits()
+  if Reroller.auto_roll_stopped or RerollSurplus.FUNCS.check_keys(targets) or RerollSurplus.FUNCS.check_limits()
       or not reroll_check.config.button then
     G.CONTROLLER.locks.shop_reroll = false
     -- Display results
@@ -133,14 +134,22 @@ function RerollSurplus.FUNCS.display_results()
 end
 
 function RerollSurplus.FUNCS.reset_rerolls()
-  RerollSurplus.REROLL.RNG_states = { prev = nil, latest = nil }
-  RerollSurplus.REROLL.rerolls = 0
-  RerollSurplus.REROLL.key_queue = {}
-  RerollSurplus.REROLL.edition_flags = {}
-  RerollSurplus.REROLL.tag_cache = {}
-  RerollSurplus.REROLL.tag_queue = {}
-  RerollSurplus.REROLL.reroll_cost = nil
-  RerollSurplus.REROLL.reroll_cost_inc = nil
-  RerollSurplus.REROLL.free_rerolls = nil
+  Reroller.RNG_states = { prev = nil, latest = nil }
+  Reroller.rerolls = 0
+  Reroller.key_queue = {}
+  Reroller.edition_flags = {}
+  Reroller.tag_cache = {}
+  Reroller.tag_queue = {}
+  Reroller.reroll_cost = nil
+  Reroller.reroll_cost_inc = nil
+  Reroller.free_rerolls = nil
+  Reroller.in_search = nil
+  Reroller.auto_roll_stopped = nil
 end
 
+RerollSurplus.Hook('before', love, 'keypressed', function(key)
+  if key == "escape" and Reroller.in_search then
+    Reroller.auto_roll_stopped = true
+    return true
+  end
+end)
